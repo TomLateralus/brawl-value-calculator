@@ -6,54 +6,96 @@
 <title>Brawl Value Calculator</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
+
 <style>
-body {font-family: -apple-system, Arial; background:#111; color:white; text-align:center; padding:20px;}
-.container {max-width:400px; margin:auto;}
-input {width:90%; padding:12px; margin:8px 0; font-size:16px; border-radius:10px; border:none;}
-button {width:95%; padding:15px; font-size:18px; border-radius:12px; border:none; background:#ffcc00; color:black; font-weight:bold; margin-top:10px;}
-.result {margin-top:20px; font-size:18px;}
-.verdict {font-size:22px; font-weight:bold; margin-top:10px;}
+body {
+    font-family: -apple-system, Arial;
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+.container {
+    max-width: 400px;
+    margin: auto;
+}
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+}
+button {
+    width: 95%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 12px;
+    border: none;
+    background: #ffcc00;
+    color: black;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.result {
+    margin-top: 20px;
+    font-size: 18px;
+}
+.verdict {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 10px;
+}
 </style>
 </head>
+
 <body>
+
 <div class="container">
-<h2>💰 Value Calculator</h2>
-<input id="gems" type="number" placeholder="💎 Gems">
-<input id="coins" type="number" placeholder="🪙 Coins">
-<input id="pp" type="number" placeholder="⚡ Power Points">
-<input id="bling" type="number" placeholder="🎨 Bling">
-<input id="price" type="number" placeholder="💲 Price (AUD)">
-<button onclick="calculate()">Calculate</button>
-<div class="result" id="value"></div>
-<div class="result" id="ratio"></div>
-<div class="verdict" id="verdict"></div>
+    <h2>💰 Brawl Value Calculator</h2>
+
+    <input id="gems" type="number" placeholder="💎 Gems">
+    <input id="coins" type="number" placeholder="🪙 Coins">
+    <input id="pp" type="number" placeholder="⚡ Power Points">
+    <input id="bling" type="number" placeholder="🎨 Bling">
+    <input id="price" type="number" placeholder="💲 Price (AUD)">
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="result" id="value"></div>
+    <div class="result" id="ratio"></div>
+    <div class="verdict" id="verdict"></div>
 </div>
+
 <script>
 function calculate() {
-let gems = parseFloat(document.getElementById('gems').value)||0;
-let coins = parseFloat(document.getElementById('coins').value)||0;
-let pp = parseFloat(document.getElementById('pp').value)||0;
-let bling = parseFloat(document.getElementById('bling').value)||0;
-let price = parseFloat(document.getElementById('price').value)||1;
+    const gems = parseFloat(document.getElementById('gems').value) || 0;
+    const coins = parseFloat(document.getElementById('coins').value) || 0;
+    const pp = parseFloat(document.getElementById('pp').value) || 0;
+    const bling = parseFloat(document.getElementById('bling').value) || 0;
+    const price = parseFloat(document.getElementById('price').value) || 1;
 
-let value = (gems*0.10)+(coins*0.002)+(pp*0.0022)+(bling*0.00075);
-let ratio = value/price;
+    // Using updated ratios
+    const value = (gems * 0.10) + (coins * 0.01) + (pp * 0.01) + (bling * 0.0005);
+    const ratio = value / price;
 
-document.getElementById('value').innerText="💰 Total Value: $"+value.toFixed(2);
-document.getElementById('ratio').innerText="📈 Value Ratio: "+ratio.toFixed(2);
+    document.getElementById('value').innerText = "💰 Total Value: $" + value.toFixed(2);
+    document.getElementById('ratio').innerText = "📈 Value Ratio: " + ratio.toFixed(2);
 
-let verdict="";
-if(ratio<1) verdict="🔴 Bad Deal";
-else if(ratio<1.5) verdict="🟡 Fair";
-else if(ratio<2.5) verdict="🟢 Good";
-else verdict="🔥 INSANE VALUE";
+    let verdict = "";
+    if (ratio < 1) verdict = "🔴 Bad Deal";
+    else if (ratio < 1.5) verdict = "🟡 Fair";
+    else if (ratio < 2.5) verdict = "🟢 Good";
+    else verdict = "🔥 INSANE VALUE";
 
-document.getElementById('verdict').innerText=verdict;
+    document.getElementById('verdict').innerText = verdict;
 }
 
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
 }
 </script>
+
 </body>
 </html>
