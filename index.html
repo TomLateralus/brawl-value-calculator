@@ -1,99 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brawl Value Calculator</title>
+<title>Brawl Deal Comparator v7</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-    font-family: -apple-system, Arial;
-    background: #111;
-    color: white;
-    text-align: center;
-    padding: 20px;
-}
-.container {
-    max-width: 400px;
-    margin: auto;
-}
-input {
-    width: 90%;
-    padding: 12px;
-    margin: 8px 0;
-    font-size: 16px;
-    border-radius: 10px;
-    border: none;
-}
-button {
-    width: 95%;
-    padding: 15px;
-    font-size: 18px;
-    border-radius: 12px;
-    border: none;
-    background: #ffcc00;
-    color: black;
-    font-weight: bold;
-    margin-top: 10px;
-}
-.result {
-    margin-top: 20px;
-    font-size: 18px;
-}
-.verdict {
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 10px;
-}
+body {font-family:Arial;background:#111;color:white;text-align:center;padding:15px;}
+.deals {display:flex;gap:10px;flex-wrap:wrap;}
+.deal {flex:1;min-width:300px;background:#1a1a1a;padding:10px;border-radius:10px;}
+input,select {width:90%;margin:5px;padding:10px;border-radius:8px;border:none;}
+button {padding:12px;width:95%;background:#ffcc00;border:none;border-radius:10px;font-weight:bold;}
+canvas {max-width:100%;}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h2>💰 Brawl Value Calculator</h2>
+<h2>🔥 Brawl Deal Comparator v7</h2>
 
-    <input id="gems" type="number" placeholder="💎 Gems">
-    <input id="coins" type="number" placeholder="🪙 Coins">
-    <input id="pp" type="number" placeholder="⚡ Power Points">
-    <input id="bling" type="number" placeholder="🎨 Bling">
-    <input id="price" type="number" placeholder="💲 Price (AUD)">
-
-    <button onclick="calculate()">Calculate</button>
-
-    <div class="result" id="value"></div>
-    <div class="result" id="ratio"></div>
-    <div class="verdict" id="verdict"></div>
+<div class="deals">
+<div class="deal">
+<h3>Deal A</h3>
+<input id="gemsA" placeholder="Gems">
+<input id="coinsA" placeholder="Coins">
+<input id="ppA" placeholder="PP">
+<input id="blingA" placeholder="Bling">
+<input id="creditsA" placeholder="Credits">
+<input id="priceA" placeholder="Price">
+<div id="outA1"></div>
+<div id="outA2"></div>
+<canvas id="chartA"></canvas>
 </div>
 
+<div class="deal">
+<h3>Deal B</h3>
+<input id="gemsB" placeholder="Gems">
+<input id="coinsB" placeholder="Coins">
+<input id="ppB" placeholder="PP">
+<input id="blingB" placeholder="Bling">
+<input id="creditsB" placeholder="Credits">
+<input id="priceB" placeholder="Price">
+<div id="outB1"></div>
+<div id="outB2"></div>
+<canvas id="chartB"></canvas>
+</div>
+</div>
+
+<select id="t1">
+<option value="aud">AUD</option>
+<option value="gems">Gems</option>
+<option value="coins">Coins</option>
+<option value="pp">PP</option>
+<option value="bling">Bling</option>
+<option value="credits">Credits</option>
+</select>
+
+<select id="t2">
+<option value="gems">Gems</option>
+<option value="aud">AUD</option>
+<option value="coins">Coins</option>
+<option value="pp">PP</option>
+<option value="bling">Bling</option>
+<option value="credits">Credits</option>
+</select>
+
+<button onclick="calc()">Compare</button>
+
+<div id="winner" style="margin-top:15px;font-size:20px;"></div>
+
 <script>
-function calculate() {
-    const gems = parseFloat(document.getElementById('gems').value) || 0;
-    const coins = parseFloat(document.getElementById('coins').value) || 0;
-    const pp = parseFloat(document.getElementById('pp').value) || 0;
-    const bling = parseFloat(document.getElementById('bling').value) || 0;
-    const price = parseFloat(document.getElementById('price').value) || 1;
+const V={g:0.10,c:0.01,p:0.02,b:0.0030303,cr:0.0181818181818181818};
 
-    // Using updated ratios
-    const value = (gems * 0.10) + (coins * 0.01) + (pp * 0.01) + (bling * 0.0005);
-    const ratio = value / price;
+function get(id){return +document.getElementById(id).value||0}
 
-    document.getElementById('value').innerText = "💰 Total Value: $" + value.toFixed(2);
-    document.getElementById('ratio').innerText = "📈 Value Ratio: " + ratio.toFixed(2);
+function val(g,c,p,b,cr){return g*V.g+c*V.c+p*V.p+b*V.b+cr*V.cr}
 
-    let verdict = "";
-    if (ratio < 1) verdict = "🔴 Bad Deal";
-    else if (ratio < 1.5) verdict = "🟡 Fair";
-    else if (ratio < 2.5) verdict = "🟢 Good";
-    else verdict = "🔥 INSANE VALUE";
+function conv(a,t){
+if(t==="gems")return a/V.g;
+if(t==="coins")return a/V.c;
+if(t==="pp")return a/V.p;
+if(t==="bling")return a/V.b;
+if(t==="credits")return a/V.cr;
+return a;
+}
 
-    document.getElementById('verdict').innerText = verdict;
+let chartA,chartB;
+
+function makeChart(ctx,data){
+return new Chart(ctx,{type:"pie",data:{
+labels:["Gems","Coins","PP","Bling","Credits"],
+datasets:[{data:data}]
+}});
+}
+
+function update(chart,ctx,data){
+if(chart){chart.data.datasets[0].data=data;chart.update();return chart;}
+return makeChart(ctx,data);
+}
+
+function calc(){
+
+let a=val(get("gemsA"),get("coinsA"),get("ppA"),get("blingA"),get("creditsA"));
+let b=val(get("gemsB"),get("coinsB"),get("ppB"),get("blingB"),get("creditsB"));
+
+let rA=a/(get("priceA")||1);
+let rB=b/(get("priceB")||1);
+
+let t1v=document.getElementById("t1").value;
+let t2v=document.getElementById("t2").value;
+
+outA1.innerText=conv(a,t1v).toFixed(2);
+outA2.innerText=conv(a,t2v).toFixed(2);
+outB1.innerText=conv(b,t1v).toFixed(2);
+outB2.innerText=conv(b,t2v).toFixed(2);
+
+let brA=[get("gemsA")*V.g,get("coinsA")*V.c,get("ppA")*V.p,get("blingA")*V.b,get("creditsA")*V.cr];
+let brB=[get("gemsB")*V.g,get("coinsB")*V.c,get("ppB")*V.p,get("blingB")*V.b,get("creditsB")*V.cr];
+
+chartA=update(chartA,document.getElementById("chartA"),brA);
+chartB=update(chartB,document.getElementById("chartB"),brB);
+
+if(Math.abs(rA-rB)<0.05) winner.innerText="⚖️ Very Similar";
+else winner.innerText=rA>rB?"🏆 Deal A Better":"🏆 Deal B Better";
 }
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
+ navigator.serviceWorker.register('sw.js');
 }
 </script>
 
