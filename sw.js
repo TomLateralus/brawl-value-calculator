@@ -1,4 +1,4 @@
-const CACHE_NAME = "brawl-v9-cache";
+const CACHE_NAME = "brawl-value-engine-cache";
 const urlsToCache = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", event => {

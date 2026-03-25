@@ -1,6 +1,6 @@
 {
-  "name": "Brawl Deal Comparator v9",
-  "short_name": "BrawlV9",
+  "name": "Brawl Star Value Engine",
+  "short_name": "BrawlValue",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#111111",

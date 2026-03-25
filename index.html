@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brawl Deal Comparator v9</title>
+  <title>Brawl Star Value Engine</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#111111" />
   <style>
@@ -14,7 +14,6 @@
       --border: rgba(255,255,255,0.08);
       --text: #f5f7fb;
       --muted: #9aa3b2;
-      --accent: #ffcc00;
       --good: #21d07a;
       --mid: #ffcc00;
       --bad: #ff5d73;
@@ -85,15 +84,18 @@
     .score-note { color: var(--muted); font-size: 0.92rem; line-height: 1.4; }
     .input-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
     .field { text-align: left; }
-    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.82rem; font-weight: 600; }
-    .field input {
+    .field label {
+      display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.82rem; font-weight: 600;
+    }
+    .field input, .field select {
       width: 100%; border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
       border-radius: 14px; padding: 13px 14px; font-size: 1rem; outline: none;
       transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
     }
-    .field input:focus {
+    .field input:focus, .field select:focus {
       border-color: rgba(255,204,0,0.5); box-shadow: 0 0 0 4px rgba(255,204,0,0.10); transform: translateY(-1px);
     }
+    .price-group { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 10px; }
     .outputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .output-card {
       background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 12px; text-align: left;
@@ -111,13 +113,14 @@
       .score-row { grid-template-columns: 1fr; justify-items: center; }
       .score-details { text-align: center; }
       .outputs { grid-template-columns: 1fr; }
+      .price-group { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="hero">
-      <h1>🔥 Brawl Deal Comparator</h1>
+      <h1>💎Brawl Star Value Engine💎</h1>
       <p>Premium-looking, real-time value analysis for Deal A vs Deal B</p>
     </div>
 
@@ -167,12 +170,42 @@
             <div class="field"><label for="pA">⚡ Power Points</label><input id="pA" type="number" inputmode="decimal" placeholder="0"></div>
             <div class="field"><label for="bA">🎨 Bling</label><input id="bA" type="number" inputmode="decimal" placeholder="0"></div>
             <div class="field"><label for="crA">🎟 Credits</label><input id="crA" type="number" inputmode="decimal" placeholder="0"></div>
-            <div class="field"><label for="prA">💲 Price (AUD)</label><input id="prA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field">
+              <label>💲 Price</label>
+              <div class="price-group">
+                <input id="prA" type="number" inputmode="decimal" placeholder="0">
+                <select id="prCurA">
+                  <option value="aud">AUD</option>
+                  <option value="gems">Gems</option>
+                  <option value="coins">Coins</option>
+                  <option value="pp">Power Points</option>
+                  <option value="bling">Bling</option>
+                  <option value="credits">Credits</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Total Value Unit</label>
+              <select id="valCurA">
+                <option value="aud">AUD</option>
+                <option value="gems">Gems</option>
+                <option value="coins">Coins</option>
+                <option value="pp">Power Points</option>
+                <option value="bling">Bling</option>
+                <option value="credits">Credits</option>
+              </select>
+            </div>
           </div>
 
           <div class="outputs">
-            <div class="output-card"><div class="output-label">Total Value</div><div id="valueA" class="output-value">$0.00 AUD</div></div>
-            <div class="output-card"><div class="output-label">Value Ratio</div><div id="ratioCardA" class="output-value">0.00×</div></div>
+            <div class="output-card">
+              <div class="output-label">Total Value</div>
+              <div id="valueA" class="output-value">$0.00 AUD</div>
+            </div>
+            <div class="output-card">
+              <div class="output-label">Value Ratio</div>
+              <div id="ratioCardA" class="output-value">0.00×</div>
+            </div>
           </div>
         </div>
       </section>
@@ -206,29 +239,84 @@
             <div class="field"><label for="pB">⚡ Power Points</label><input id="pB" type="number" inputmode="decimal" placeholder="0"></div>
             <div class="field"><label for="bB">🎨 Bling</label><input id="bB" type="number" inputmode="decimal" placeholder="0"></div>
             <div class="field"><label for="crB">🎟 Credits</label><input id="crB" type="number" inputmode="decimal" placeholder="0"></div>
-            <div class="field"><label for="prB">💲 Price (AUD)</label><input id="prB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field">
+              <label>💲 Price</label>
+              <div class="price-group">
+                <input id="prB" type="number" inputmode="decimal" placeholder="0">
+                <select id="prCurB">
+                  <option value="aud">AUD</option>
+                  <option value="gems">Gems</option>
+                  <option value="coins">Coins</option>
+                  <option value="pp">Power Points</option>
+                  <option value="bling">Bling</option>
+                  <option value="credits">Credits</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Total Value Unit</label>
+              <select id="valCurB">
+                <option value="aud">AUD</option>
+                <option value="gems">Gems</option>
+                <option value="coins">Coins</option>
+                <option value="pp">Power Points</option>
+                <option value="bling">Bling</option>
+                <option value="credits">Credits</option>
+              </select>
+            </div>
           </div>
 
           <div class="outputs">
-            <div class="output-card"><div class="output-label">Total Value</div><div id="valueB" class="output-value">$0.00 AUD</div></div>
-            <div class="output-card"><div class="output-label">Value Ratio</div><div id="ratioCardB" class="output-value">0.00×</div></div>
+            <div class="output-card">
+              <div class="output-label">Total Value</div>
+              <div id="valueB" class="output-value">$0.00 AUD</div>
+            </div>
+            <div class="output-card">
+              <div class="output-label">Value Ratio</div>
+              <div id="ratioCardB" class="output-value">0.00×</div>
+            </div>
           </div>
         </div>
       </section>
     </div>
 
     <div class="footer-note">
-      Scores are based on your custom currency weights and compare total value against price.
+      Scores compare total bundle value against the selected price currency converted into AUD.
     </div>
   </div>
 
   <script>
-    const V = { g: 0.10, c: 0.01, p: 0.02, b: 0.0030303, cr: 0.0181818181818181818 };
+    const V = { g: 0.10, c: 0.01, p: 0.02, b: 0.0030303, cr: 0.0181818181818181818, aud: 1 };
 
     function get(id) { return parseFloat(document.getElementById(id).value) || 0; }
-    function totalValue(g, c, p, b, cr) { return g * V.g + c * V.c + p * V.p + b * V.b + cr * V.cr; }
-    function calcRatio(value, price) { return value / (price || 1); }
-    function calcScore(value, price) { const ratio = calcRatio(value, price); return Math.min(100, Math.round(ratio * 50)); }
+    function cur(id) { return document.getElementById(id).value; }
+
+    function unitValue(currency) {
+      const map = { aud: V.aud, gems: V.g, coins: V.c, pp: V.p, bling: V.b, credits: V.cr };
+      return map[currency];
+    }
+
+    function totalValue(g, c, p, b, cr) {
+      return g * V.g + c * V.c + p * V.p + b * V.b + cr * V.cr;
+    }
+
+    function convertFromAUD(amountAUD, currency) {
+      if (currency === "aud") return amountAUD;
+      return amountAUD / unitValue(currency);
+    }
+
+    function priceToAUD(amount, currency) {
+      return amount * unitValue(currency);
+    }
+
+    function calcRatio(valueAUD, priceAUD) {
+      return valueAUD / (priceAUD || 1);
+    }
+
+    function calcScore(valueAUD, priceAUD) {
+      const ratio = calcRatio(valueAUD, priceAUD);
+      return Math.min(100, Math.round(ratio * 50));
+    }
 
     function getTier(score) {
       if (score >= 80) return "good";
@@ -268,7 +356,16 @@
       return "var(--bad)";
     }
 
-    function formatMoney(value) { return "$" + value.toFixed(2) + " AUD"; }
+    function formatValue(amountAUD, currency) {
+      const converted = convertFromAUD(amountAUD, currency);
+      if (currency === "aud") return "$" + converted.toFixed(2) + " AUD";
+      if (currency === "gems") return converted.toFixed(2) + " Gems";
+      if (currency === "coins") return converted.toFixed(2) + " Coins";
+      if (currency === "pp") return converted.toFixed(2) + " Power Points";
+      if (currency === "bling") return converted.toFixed(2) + " Bling";
+      return converted.toFixed(2) + " Credits";
+    }
+
     function formatRatio(ratio) { return ratio.toFixed(2) + "×"; }
 
     function updateDeal(prefix) {
@@ -277,24 +374,28 @@
       const p = get("p" + prefix);
       const b = get("b" + prefix);
       const cr = get("cr" + prefix);
-      const pr = get("pr" + prefix);
 
-      const value = totalValue(g, c, p, b, cr);
-      const ratio = calcRatio(value, pr);
-      const score = calcScore(value, pr);
+      const priceAmount = get("pr" + prefix);
+      const priceCurrency = cur("prCur" + prefix);
+      const priceAUD = priceToAUD(priceAmount, priceCurrency);
+
+      const valueCurrency = cur("valCur" + prefix);
+      const valueAUD = totalValue(g, c, p, b, cr);
+      const ratio = calcRatio(valueAUD, priceAUD);
+      const score = calcScore(valueAUD, priceAUD);
       const tier = getTier(score);
 
       document.getElementById("score" + prefix).innerText = score;
       document.getElementById("headline" + prefix).innerText = getHeadline(score);
       document.getElementById("label" + prefix).innerText = getLabel(ratio, c, p, cr, b);
-      document.getElementById("value" + prefix).innerText = formatMoney(value);
+      document.getElementById("value" + prefix).innerText = formatValue(valueAUD, valueCurrency);
       document.getElementById("ratioCard" + prefix).innerText = formatRatio(ratio);
       document.getElementById("badge" + prefix).innerText = badgeText(score);
       document.getElementById("badge" + prefix).className = "badge " + tier;
       document.getElementById("ring" + prefix).style.setProperty("--score", score);
       document.getElementById("ring" + prefix).style.setProperty("--ring-color", ringColor(score));
 
-      return { value, ratio, score };
+      return { valueAUD, ratio, score };
     }
 
     function updateWinner(a, b) {
@@ -322,7 +423,11 @@
       updateWinner(a, b);
     }
 
-    document.querySelectorAll("input").forEach(input => input.addEventListener("input", updateAll));
+    document.querySelectorAll("input, select").forEach(el => {
+      el.addEventListener("input", updateAll);
+      el.addEventListener("change", updateAll);
+    });
+
     updateAll();
 
     if ("serviceWorker" in navigator) {
