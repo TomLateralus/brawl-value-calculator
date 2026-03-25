@@ -1,136 +1,333 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brawl Deal Comparator v7</title>
-<link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-body {font-family:Arial;background:#111;color:white;text-align:center;padding:15px;}
-.deals {display:flex;gap:10px;flex-wrap:wrap;}
-.deal {flex:1;min-width:300px;background:#1a1a1a;padding:10px;border-radius:10px;}
-input,select {width:90%;margin:5px;padding:10px;border-radius:8px;border:none;}
-button {padding:12px;width:95%;background:#ffcc00;border:none;border-radius:10px;font-weight:bold;}
-canvas {max-width:100%;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brawl Deal Comparator v9</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111111" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1d212b;
+      --border: rgba(255,255,255,0.08);
+      --text: #f5f7fb;
+      --muted: #9aa3b2;
+      --accent: #ffcc00;
+      --good: #21d07a;
+      --mid: #ffcc00;
+      --bad: #ff5d73;
+      --shadow: 0 12px 30px rgba(0,0,0,0.35);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255, 204, 0, 0.08), transparent 28%),
+        linear-gradient(180deg, #0d1015 0%, #11141b 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 20px 14px 32px; }
+    .hero { text-align: center; margin-bottom: 18px; }
+    .hero h1 { margin: 0; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; }
+    .hero p { margin: 8px 0 0; color: var(--muted); font-size: 0.98rem; }
+    .summary {
+      position: sticky; top: 12px; z-index: 10; margin: 18px auto 20px;
+      background: rgba(23, 26, 33, 0.88); backdrop-filter: blur(16px);
+      border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow); padding: 14px;
+    }
+    .summary-grid { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: center; }
+    .winner-banner {
+      background: linear-gradient(135deg, rgba(255,204,0,0.18), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,204,0,0.18); border-radius: 18px; padding: 14px 16px;
+      font-weight: 700; font-size: 1.05rem; text-align: center;
+    }
+    .meta-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .meta-card {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 12px; text-align: center;
+    }
+    .meta-label { color: var(--muted); font-size: 0.8rem; margin-bottom: 6px; }
+    .meta-value { font-size: 1.1rem; font-weight: 700; }
+    .deals { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .deal-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+      border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .deal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px; }
+    .deal-title-wrap { text-align: left; }
+    .deal-title { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+    .deal-subtitle { margin-top: 4px; color: var(--muted); font-size: 0.85rem; }
+    .badge {
+      border-radius: 999px; padding: 8px 12px; font-size: 0.8rem; font-weight: 700;
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .badge.good { color: #08150d; background: var(--good); }
+    .badge.mid { color: #261d00; background: var(--mid); }
+    .badge.bad { color: white; background: var(--bad); }
+    .deal-body { padding: 10px 16px 16px; }
+    .score-row { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; margin-bottom: 14px; }
+    .score-ring {
+      width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; position: relative;
+      background: conic-gradient(var(--ring-color) calc(var(--score) * 1%), rgba(255,255,255,0.08) 0);
+    }
+    .score-ring::before {
+      content: ""; position: absolute; inset: 9px; border-radius: 50%;
+      background: var(--panel); border: 1px solid var(--border);
+    }
+    .score-value { position: relative; z-index: 1; font-size: 1.45rem; font-weight: 800; letter-spacing: -0.04em; }
+    .score-caption { position: relative; z-index: 1; font-size: 0.7rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
+    .score-details { text-align: left; }
+    .score-headline { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+    .score-note { color: var(--muted); font-size: 0.92rem; line-height: 1.4; }
+    .input-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+    .field { text-align: left; }
+    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+    .field input {
+      width: 100%; border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+      border-radius: 14px; padding: 13px 14px; font-size: 1rem; outline: none;
+      transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .field input:focus {
+      border-color: rgba(255,204,0,0.5); box-shadow: 0 0 0 4px rgba(255,204,0,0.10); transform: translateY(-1px);
+    }
+    .outputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .output-card {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 12px; text-align: left;
+    }
+    .output-label { color: var(--muted); font-size: 0.78rem; margin-bottom: 5px; }
+    .output-value { font-size: 1.08rem; font-weight: 800; letter-spacing: -0.02em; word-break: break-word; }
+    .footer-note { text-align: center; color: var(--muted); font-size: 0.82rem; margin-top: 18px; }
+    @media (min-width: 860px) {
+      .summary-grid { grid-template-columns: 1.3fr 1fr; }
+      .deals { grid-template-columns: 1fr 1fr; }
+      .input-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.55rem; }
+      .score-row { grid-template-columns: 1fr; justify-items: center; }
+      .score-details { text-align: center; }
+      .outputs { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="app">
+    <div class="hero">
+      <h1>🔥 Brawl Deal Comparator</h1>
+      <p>Premium-looking, real-time value analysis for Deal A vs Deal B</p>
+    </div>
 
-<h2>🔥 Brawl Deal Comparator v7</h2>
+    <div class="summary">
+      <div class="summary-grid">
+        <div id="winnerBanner" class="winner-banner">Enter deal values to begin</div>
+        <div class="meta-row">
+          <div class="meta-card">
+            <div class="meta-label">Deal A Ratio</div>
+            <div id="ratioA" class="meta-value">0.00×</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Deal B Ratio</div>
+            <div id="ratioB" class="meta-value">0.00×</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="deals">
-<div class="deal">
-<h3>Deal A</h3>
-<input id="gemsA" placeholder="Gems">
-<input id="coinsA" placeholder="Coins">
-<input id="ppA" placeholder="PP">
-<input id="blingA" placeholder="Bling">
-<input id="creditsA" placeholder="Credits">
-<input id="priceA" placeholder="Price">
-<div id="outA1"></div>
-<div id="outA2"></div>
-<canvas id="chartA"></canvas>
-</div>
+    <div class="deals">
+      <section class="deal-card">
+        <div class="deal-header">
+          <div class="deal-title-wrap">
+            <h2 class="deal-title">Deal A</h2>
+            <div class="deal-subtitle">First offer</div>
+          </div>
+          <div id="badgeA" class="badge mid">Waiting</div>
+        </div>
 
-<div class="deal">
-<h3>Deal B</h3>
-<input id="gemsB" placeholder="Gems">
-<input id="coinsB" placeholder="Coins">
-<input id="ppB" placeholder="PP">
-<input id="blingB" placeholder="Bling">
-<input id="creditsB" placeholder="Credits">
-<input id="priceB" placeholder="Price">
-<div id="outB1"></div>
-<div id="outB2"></div>
-<canvas id="chartB"></canvas>
-</div>
-</div>
+        <div class="deal-body">
+          <div class="score-row">
+            <div id="ringA" class="score-ring" style="--score: 0; --ring-color: var(--mid);">
+              <div style="text-align:center;">
+                <div id="scoreA" class="score-value">0</div>
+                <div class="score-caption">Score</div>
+              </div>
+            </div>
+            <div class="score-details">
+              <div id="headlineA" class="score-headline">Enter values</div>
+              <div id="labelA" class="score-note">This panel updates instantly as you type.</div>
+            </div>
+          </div>
 
-<select id="t1">
-<option value="aud">AUD</option>
-<option value="gems">Gems</option>
-<option value="coins">Coins</option>
-<option value="pp">PP</option>
-<option value="bling">Bling</option>
-<option value="credits">Credits</option>
-</select>
+          <div class="input-grid">
+            <div class="field"><label for="gA">💎 Gems</label><input id="gA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="cA">🪙 Coins</label><input id="cA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="pA">⚡ Power Points</label><input id="pA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="bA">🎨 Bling</label><input id="bA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="crA">🎟 Credits</label><input id="crA" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="prA">💲 Price (AUD)</label><input id="prA" type="number" inputmode="decimal" placeholder="0"></div>
+          </div>
 
-<select id="t2">
-<option value="gems">Gems</option>
-<option value="aud">AUD</option>
-<option value="coins">Coins</option>
-<option value="pp">PP</option>
-<option value="bling">Bling</option>
-<option value="credits">Credits</option>
-</select>
+          <div class="outputs">
+            <div class="output-card"><div class="output-label">Total Value</div><div id="valueA" class="output-value">$0.00 AUD</div></div>
+            <div class="output-card"><div class="output-label">Value Ratio</div><div id="ratioCardA" class="output-value">0.00×</div></div>
+          </div>
+        </div>
+      </section>
 
-<button onclick="calc()">Compare</button>
+      <section class="deal-card">
+        <div class="deal-header">
+          <div class="deal-title-wrap">
+            <h2 class="deal-title">Deal B</h2>
+            <div class="deal-subtitle">Second offer</div>
+          </div>
+          <div id="badgeB" class="badge mid">Waiting</div>
+        </div>
 
-<div id="winner" style="margin-top:15px;font-size:20px;"></div>
+        <div class="deal-body">
+          <div class="score-row">
+            <div id="ringB" class="score-ring" style="--score: 0; --ring-color: var(--mid);">
+              <div style="text-align:center;">
+                <div id="scoreB" class="score-value">0</div>
+                <div class="score-caption">Score</div>
+              </div>
+            </div>
+            <div class="score-details">
+              <div id="headlineB" class="score-headline">Enter values</div>
+              <div id="labelB" class="score-note">This panel updates instantly as you type.</div>
+            </div>
+          </div>
 
-<script>
-const V={g:0.10,c:0.01,p:0.02,b:0.0030303,cr:0.0181818181818181818};
+          <div class="input-grid">
+            <div class="field"><label for="gB">💎 Gems</label><input id="gB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="cB">🪙 Coins</label><input id="cB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="pB">⚡ Power Points</label><input id="pB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="bB">🎨 Bling</label><input id="bB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="crB">🎟 Credits</label><input id="crB" type="number" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="prB">💲 Price (AUD)</label><input id="prB" type="number" inputmode="decimal" placeholder="0"></div>
+          </div>
 
-function get(id){return +document.getElementById(id).value||0}
+          <div class="outputs">
+            <div class="output-card"><div class="output-label">Total Value</div><div id="valueB" class="output-value">$0.00 AUD</div></div>
+            <div class="output-card"><div class="output-label">Value Ratio</div><div id="ratioCardB" class="output-value">0.00×</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
 
-function val(g,c,p,b,cr){return g*V.g+c*V.c+p*V.p+b*V.b+cr*V.cr}
+    <div class="footer-note">
+      Scores are based on your custom currency weights and compare total value against price.
+    </div>
+  </div>
 
-function conv(a,t){
-if(t==="gems")return a/V.g;
-if(t==="coins")return a/V.c;
-if(t==="pp")return a/V.p;
-if(t==="bling")return a/V.b;
-if(t==="credits")return a/V.cr;
-return a;
-}
+  <script>
+    const V = { g: 0.10, c: 0.01, p: 0.02, b: 0.0030303, cr: 0.0181818181818181818 };
 
-let chartA,chartB;
+    function get(id) { return parseFloat(document.getElementById(id).value) || 0; }
+    function totalValue(g, c, p, b, cr) { return g * V.g + c * V.c + p * V.p + b * V.b + cr * V.cr; }
+    function calcRatio(value, price) { return value / (price || 1); }
+    function calcScore(value, price) { const ratio = calcRatio(value, price); return Math.min(100, Math.round(ratio * 50)); }
 
-function makeChart(ctx,data){
-return new Chart(ctx,{type:"pie",data:{
-labels:["Gems","Coins","PP","Bling","Credits"],
-datasets:[{data:data}]
-}});
-}
+    function getTier(score) {
+      if (score >= 80) return "good";
+      if (score >= 50) return "mid";
+      return "bad";
+    }
 
-function update(chart,ctx,data){
-if(chart){chart.data.datasets[0].data=data;chart.update();return chart;}
-return makeChart(ctx,data);
-}
+    function getHeadline(score) {
+      if (score >= 90) return "Elite value";
+      if (score >= 80) return "Excellent buy";
+      if (score >= 65) return "Strong value";
+      if (score >= 50) return "Solid enough";
+      if (score >= 35) return "Borderline";
+      return "Weak value";
+    }
 
-function calc(){
+    function getLabel(ratio, coins, pp, credits, bling) {
+      if (coins > pp * 2 && coins > credits) return "⚠️ Coin-heavy filler detected.";
+      if (pp > coins && pp > credits) return "⚡ Best for progression focus.";
+      if (credits > pp && credits > coins) return "🎟 Strong unlock-focused value.";
+      if (bling > 0 && bling * V.b > pp * V.p) return "🎨 Cosmetic-heavy package.";
+      if (ratio > 2.5) return "🔥 Outstanding value for the price.";
+      if (ratio > 1.5) return "🟢 Efficient value buy.";
+      if (ratio > 1.0) return "🟡 Fair, but not amazing.";
+      return "🔴 Below your value target.";
+    }
 
-let a=val(get("gemsA"),get("coinsA"),get("ppA"),get("blingA"),get("creditsA"));
-let b=val(get("gemsB"),get("coinsB"),get("ppB"),get("blingB"),get("creditsB"));
+    function badgeText(score) {
+      if (score >= 80) return "Excellent";
+      if (score >= 50) return "Fair";
+      return "Poor";
+    }
 
-let rA=a/(get("priceA")||1);
-let rB=b/(get("priceB")||1);
+    function ringColor(score) {
+      if (score >= 80) return "var(--good)";
+      if (score >= 50) return "var(--mid)";
+      return "var(--bad)";
+    }
 
-let t1v=document.getElementById("t1").value;
-let t2v=document.getElementById("t2").value;
+    function formatMoney(value) { return "$" + value.toFixed(2) + " AUD"; }
+    function formatRatio(ratio) { return ratio.toFixed(2) + "×"; }
 
-outA1.innerText=conv(a,t1v).toFixed(2);
-outA2.innerText=conv(a,t2v).toFixed(2);
-outB1.innerText=conv(b,t1v).toFixed(2);
-outB2.innerText=conv(b,t2v).toFixed(2);
+    function updateDeal(prefix) {
+      const g = get("g" + prefix);
+      const c = get("c" + prefix);
+      const p = get("p" + prefix);
+      const b = get("b" + prefix);
+      const cr = get("cr" + prefix);
+      const pr = get("pr" + prefix);
 
-let brA=[get("gemsA")*V.g,get("coinsA")*V.c,get("ppA")*V.p,get("blingA")*V.b,get("creditsA")*V.cr];
-let brB=[get("gemsB")*V.g,get("coinsB")*V.c,get("ppB")*V.p,get("blingB")*V.b,get("creditsB")*V.cr];
+      const value = totalValue(g, c, p, b, cr);
+      const ratio = calcRatio(value, pr);
+      const score = calcScore(value, pr);
+      const tier = getTier(score);
 
-chartA=update(chartA,document.getElementById("chartA"),brA);
-chartB=update(chartB,document.getElementById("chartB"),brB);
+      document.getElementById("score" + prefix).innerText = score;
+      document.getElementById("headline" + prefix).innerText = getHeadline(score);
+      document.getElementById("label" + prefix).innerText = getLabel(ratio, c, p, cr, b);
+      document.getElementById("value" + prefix).innerText = formatMoney(value);
+      document.getElementById("ratioCard" + prefix).innerText = formatRatio(ratio);
+      document.getElementById("badge" + prefix).innerText = badgeText(score);
+      document.getElementById("badge" + prefix).className = "badge " + tier;
+      document.getElementById("ring" + prefix).style.setProperty("--score", score);
+      document.getElementById("ring" + prefix).style.setProperty("--ring-color", ringColor(score));
 
-if(Math.abs(rA-rB)<0.05) winner.innerText="⚖️ Very Similar";
-else winner.innerText=rA>rB?"🏆 Deal A Better":"🏆 Deal B Better";
-}
+      return { value, ratio, score };
+    }
 
-if ('serviceWorker' in navigator) {
- navigator.serviceWorker.register('sw.js');
-}
-</script>
+    function updateWinner(a, b) {
+      const banner = document.getElementById("winnerBanner");
+      document.getElementById("ratioA").innerText = formatRatio(a.ratio);
+      document.getElementById("ratioB").innerText = formatRatio(b.ratio);
 
+      if (a.score === 0 && b.score === 0) {
+        banner.innerText = "Enter deal values to begin";
+        return;
+      }
+
+      if (Math.abs(a.score - b.score) < 3) {
+        banner.innerText = "⚖️ These deals are extremely close in value";
+      } else if (a.score > b.score) {
+        banner.innerText = "🏆 Deal A is the stronger buy right now";
+      } else {
+        banner.innerText = "🏆 Deal B is the stronger buy right now";
+      }
+    }
+
+    function updateAll() {
+      const a = updateDeal("A");
+      const b = updateDeal("B");
+      updateWinner(a, b);
+    }
+
+    document.querySelectorAll("input").forEach(input => input.addEventListener("input", updateAll));
+    updateAll();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
 </body>
 </html>
